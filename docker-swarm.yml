@@ -1,0 +1,132 @@
+# https://docs.docker.com/compose/compose-file/compose-file-v3/
+version: '3.8'
+services:
+  elasticsearch:
+    image: akhilrajmailbox/elasticsearch:elasticsearch-7.17.0
+    environment:
+      - CLUSTER_NAME=my-es
+      - NODE_NAME=my-master
+      - ELASTIC_PASSWORD=SomeSecurePass # ELASTIC_PASSWORD and ELASTICSEARCH_PASSWORD must be same
+      - SECURITY_ENABLE=true
+      - MONITOR_ENABLE=true
+      - ES_JAVA_OPTS=-Xms8g -Xmx8g
+      - MEMORY_LOCK=false
+    ports:
+      - target: 9200
+        published: 9200
+        protocol: tcp
+        mode: host
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9200"]
+      interval: 60s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    labels:
+      - "com.devops.my.service.name=elasticsearch"
+      - "com.devops.my.service.module=es"
+    deploy:
+      mode: replicated
+      replicas: 1
+      labels:
+        - "com.devops.my.service.name=elasticsearch"
+        - "com.devops.my.service.module=es"
+      update_config:
+        parallelism: 1
+        delay: 10s
+        failure_action: pause # rollback
+        monitor: 5s
+        order: stop-first
+      # rollback_config:
+      #   parallelism: 1
+      #   delay: 10s
+      #   failure_action: pause
+      #   monitor: 5s
+      #   order: stop-first
+      restart_policy:
+        condition: any
+        delay: 10s
+        max_attempts: 5
+        window: 120s
+      placement:
+        max_replicas_per_node: 1
+        constraints:
+          - "node.role==manager"
+          - "node.platform.os==linux"
+      resources:
+        limits:
+          cpus: "4"
+          memory: 8G
+        reservations:
+          cpus: "1"
+          memory: 8G
+    volumes:
+      # Directory must exist on the Host
+      - /DATA/DevOps/ESCluster/data:/usr/share/elasticsearch/data
+      - /DATA/DevOps/ESCluster/plugins:/usr/share/elasticsearch/plugins
+    networks:
+      - my-swarm-network
+
+
+  kibana:
+    image: docker.elastic.co/kibana/kibana:7.17.0
+    environment:
+      - ELASTICSEARCH_USERNAME=elastic
+      - ELASTICSEARCH_PASSWORD=4voPpQXUciJWrUr6LZqIfgOAXE9w9VA7 # ELASTIC_PASSWORD and ELASTICSEARCH_PASSWORD must be same
+    ports:
+      - target: 5601
+        published: 5601
+        protocol: tcp
+        mode: host
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5601"]
+      interval: 60s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    labels:
+      - "com.devops.my.service.name=kibana"
+      - "com.devops.my.service.module=es"
+    deploy:
+      mode: replicated
+      replicas: 1
+      labels:
+        - "com.devops.my.service.name=kibana"
+        - "com.devops.my.service.module=es"
+      update_config:
+        parallelism: 1
+        delay: 10s
+        failure_action: pause # rollback
+        monitor: 5s
+        order: stop-first
+      # rollback_config:
+      #   parallelism: 1
+      #   delay: 10s
+      #   failure_action: pause
+      #   monitor: 5s
+      #   order: stop-first
+      restart_policy:
+        condition: any
+        delay: 10s
+        max_attempts: 5
+        window: 120s
+      placement:
+        max_replicas_per_node: 1
+        constraints:
+          - "node.role==manager"
+          - "node.platform.os==linux"
+      resources:
+        limits:
+          cpus: "1"
+          memory: 2G
+        reservations:
+          cpus: "0.250"
+          memory: 1G
+    networks:
+      - my-swarm-network
+
+
+networks:
+  my-swarm-network:
+    external: true
+    name: my-swarm-network
