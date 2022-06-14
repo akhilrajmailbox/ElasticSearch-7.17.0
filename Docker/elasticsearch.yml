@@ -1,0 +1,42 @@
+cluster:
+  name: ${CLUSTER_NAME}
+
+discovery:
+  type: ${DISCOVERY_TYPE}
+
+node:
+  name: ${NODE_NAME}
+  master: ${NODE_MASTER}
+  data: ${NODE_DATA}
+  ingest: ${NODE_INGEST}
+  max_local_storage_nodes: ${MAX_LOCAL_STORAGE_NODES}
+
+processors: ${PROCESSORS:1}
+
+network:
+  host: ${NETWORK_HOST}
+
+transport:
+  port: ${TRANSPORT_PORT:9300}
+
+http:
+  port: ${HTTP_PORT:9200}
+  compression: true
+  cors:
+    enabled: ${HTTP_CORS_ENABLE}
+    allow-origin: ${HTTP_CORS_ALLOW_ORIGIN}
+
+path:
+  data: ${ES_BASE}/data
+  logs: ${ES_BASE}/logs
+  repo: ${REPO_LOCATIONS}
+
+bootstrap:
+  memory_lock: ${MEMORY_LOCK}
+
+xpack:
+  security:
+    enabled: ${SECURITY_ENABLE}
+  monitoring:
+    collection:
+      enabled: ${MONITOR_ENABLE}
